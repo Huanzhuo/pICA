@@ -37,3 +37,4 @@ This project is licensed under the [MIT license](./LICENSE).
 ## Todo
 1. Update file path.
 2. Add test data set.
+3. Merge version 1.0 with interval extration to the branch pICA-v1.0
