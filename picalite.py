@@ -67,7 +67,7 @@ class ProgressiveICALite():
 
     # Pica 主要部分
     def _pica(self, X, proc_mode, init_ext_interval, dynamic_adj_coef, tol, grad_var_tol, g, max_iter):
-        n = X.shape[0]
+        n, m = X.shape
         W = np.random.random_sample((n, n))
         ext_interval = int(init_ext_interval)
         ext_interval_divisor = dynamic_adj_coef
@@ -85,7 +85,8 @@ class ProgressiveICALite():
                     raise NameError(
                         'The value of proc_mode is invalid, it must be "fast" , "normal" or "precise". ')
             # Pica 按等间隔提取数据
-            _X = X[:, ::int(ext_interval)]
+            _X = X[:, :int(m//ext_interval)]
+            # _X = X[:, ::int(ext_interval)]
             # Pica 重新白化并计算白化矩阵V的逆矩阵
             _X, V, V_inv = self._whiten_with_inv_v(_X)
             # 计算适重新应白化后的X的W矩阵
