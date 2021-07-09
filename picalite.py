@@ -84,8 +84,9 @@ class ProgressiveICALite():
                 else:
                     raise NameError(
                         'The value of proc_mode is invalid, it must be "fast" , "normal" or "precise". ')
+            # Pica 按顺序提取数据
+            _X = X[:, :int(m // ext_interval)]
             # Pica 按等间隔提取数据
-            _X = X[:, :int(m//ext_interval)]
             # _X = X[:, ::int(ext_interval)]
             # Pica 重新白化并计算白化矩阵V的逆矩阵
             _X, V, V_inv = self._whiten_with_inv_v(_X)
