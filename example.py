@@ -12,6 +12,7 @@ if __name__ == '__main__': #'/Users/shenyunbin/Downloads/clean/audio' #
     saxs = pickle.load(fr)
     ss,aa,xx = saxs
     fr.close()
+    W = np.load("W.npy")
     
 
     res = {}
@@ -21,7 +22,7 @@ if __name__ == '__main__': #'/Users/shenyunbin/Downloads/clean/audio' #
     res['fastica_time'] = 0
 
     repeat_num = 10 #repeat number
-    i = 1 #pick the i-th input data
+    i = 2 #pick the i-th input data
     S,A,X = ss[i],aa[i],xx[i]
     eval_type = 'psnr'
 
@@ -30,6 +31,7 @@ if __name__ == '__main__': #'/Users/shenyunbin/Downloads/clean/audio' #
     pybss_tb.timer_start()
     for i in range(repeat_num):
         # S,A,X = ss[i],aa[i],xx[i]
+        # hat_S = picalite.pica(X, proc_mode='precise', init_ext_interval=4000, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W)
         hat_S = picalite.pica(X, proc_mode='precise', init_ext_interval=4000, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200)
         pybss_tb.timer_suspend()
         Eval_dB += pybss_tb.bss_evaluation(S, hat_S, eval_type)
@@ -40,6 +42,7 @@ if __name__ == '__main__': #'/Users/shenyunbin/Downloads/clean/audio' #
 
     Eval_dB = 0
     pybss_tb.timer_start()
+    # transformer = FastICA(w_init=W)
     transformer = FastICA()
     X = X.T
     for i in range(repeat_num):

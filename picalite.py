@@ -58,9 +58,9 @@ class ProgressiveICALite():
                 'PICA did not converge. Consider increasing tolerance or the maximum number of iterations.')
         return W, lim
 
-    def _pica(self, X, proc_mode, init_ext_interval, dynamic_adj_coef, tol, grad_var_tol, g, max_iter):
+    def _pica(self, X, proc_mode, init_ext_interval, dynamic_adj_coef, tol, grad_var_tol, g, max_iter, w_init):
         n, m = X.shape
-        W = np.random.random_sample((n, n))
+        W = w_init
         ext_interval = int(init_ext_interval)
         ext_interval_divisor = dynamic_adj_coef
         while(True):
@@ -91,7 +91,8 @@ class ProgressiveICALite():
             ext_interval //= ext_interval_divisor
         return W
 
-    def pica(self, X, proc_mode='precise', init_ext_interval=None, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200):
+    def pica(self, X, proc_mode='precise', init_ext_interval=None, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=None):
+        n, m = np.shape(X)
         if fun == 'logcosh':
             g = self._logcosh
         elif fun == 'exp':
@@ -102,10 +103,11 @@ class ProgressiveICALite():
             raise ValueError(
                 "Unknown function, the value of 'fun' should be one of 'logcosh', 'exp', 'cube'.")
         if init_ext_interval is None:
-            n, m = np.shape(X)
             init_ext_interval = m // n
+        if w_init is None:
+            w_init = np.random.random_sample((n, n))
         W = self._pica(X, proc_mode,  init_ext_interval, dynamic_adj_coef,
-                       tol, grad_var_tol, g, max_iter)
+                       tol, grad_var_tol, g, max_iter, w_init)
         S2 = np.dot(W, X)
         return S2
 
