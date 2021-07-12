@@ -26,7 +26,6 @@ if __name__ == '__main__': #'/Users/shenyunbin/Downloads/clean/audio' #
     S,A,X = ss[i],aa[i],xx[i]
     eval_type = 'psnr'
 
-    
     Eval_dB = 0
     pybss_tb.timer_start()
     for i in range(repeat_num):
