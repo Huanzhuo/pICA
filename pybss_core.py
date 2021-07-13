@@ -157,8 +157,8 @@ class ProgressiveICALite():
                 else:
                     raise NameError(
                         'The value of proc_mode is invalid, it must be "fast" , "normal" or "precise". ')
-            _X = X[:, :int(m // ext_interval)]
-            # _X = X[:, ::int(ext_interval)]
+            # _X = X[:, :int(m // ext_interval)]
+            _X = X[:, ::int(ext_interval)]
             _X, V, V_inv = self._whiten_with_inv_v(_X)
             W = self._sym_decorrelation(np.dot(W, V_inv))
             W, lim = self._ica_par(_X, W, grad_var_tol, tol, g, max_iter)
