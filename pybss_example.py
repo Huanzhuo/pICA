@@ -1,4 +1,4 @@
-from picalite  import *
+from pybss_core import *
 from pybss_testbed import *
 import numpy as np
 from tqdm import tqdm
