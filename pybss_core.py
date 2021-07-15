@@ -17,6 +17,17 @@ class ProgressiveICALite():
         return X1, V, V_inv
 
     def _logcosh(self, x, alpha=1.0):
+        '''
+        # Usage:
+        g_1(u)
+
+        # Parameters:
+
+
+        # Output:
+
+            gx: separation matrix W.
+        '''
         x *= alpha
         gx = np.tanh(x, x)
         g_x = np.empty(x.shape[0])
@@ -25,20 +36,71 @@ class ProgressiveICALite():
         return gx, g_x
 
     def _exp(self, x):
+        '''
+        # Usage:
+        g_2(u)
+
+        # Parameters:
+
+
+        # Output:
+
+            gx: separation matrix W.
+        '''
         exp = np.exp(-(x ** 2) / 2)
         gx = x * exp
         g_x = (1 - x ** 2) * exp
         return gx, g_x.sum(axis=-1)
 
     def _cube(self, x):
+        '''
+        # Usage:
+        g_3(u)
+
+        # Parameters:
+
+
+        # Output:
+
+            gx: separation matrix W.
+        '''
         return x ** 3, (3 * x ** 2).sum(axis=-1)
 
     def _sym_decorrelation(self, W):
+        '''
+        # Usage:
+        Decorrelation of W
+
+        # Parameters:
+
+            W: separation matrix
+
+        # Output:
+
+            Decorrelated separation matrix W.
+        '''
         S, U = np.linalg.eigh(np.dot(W, W.T))
         np.clip(S, 1e-15, None, out=S)
         return np.linalg.multi_dot([U * (1. / np.sqrt(S)), U.T, W])
 
     def _ica_par(self, X, W, grad_var_tol, tol, g, max_iter):
+        '''
+        # Usage:
+        pICA process logic
+
+        # Parameters:
+
+            X: Whitened subset of mixed signals X_k.
+            W: w_{k-1}
+            grad_var_tol: maximum grandient decreasing rate, h
+            tol: tolerance
+            g: g(u)
+            max_iter: Maximum number of iteration.
+
+        # Output:
+
+            Separation matrix w_k.
+        '''
         lim_sum = 0
         lim_max = 0
         for i in range(max_iter):
@@ -59,6 +121,26 @@ class ProgressiveICALite():
         return W, lim
 
     def _pica(self, X, proc_mode, init_ext_interval, dynamic_adj_coef, tol, grad_var_tol, g, max_iter, w_init):
+        '''
+        # Usage:
+        Convergent pICA.
+
+        # Parameters:
+
+            X: Whitened mixed signals.
+            proc_mode: Processing mode.
+            init_ext_interval: initial extration interval of pICA, minimum m//n
+            dynamic_adj_coef: alpha_1, increasing rate of subset
+            tol: tolerance of convergence
+            grad_var_tol: maximum grandient decreasing rate, h
+            g: g(u)
+            max_iter: Maximum number of iteration.
+            w_init: w_0
+
+        # Output:
+
+            Separation matrix: W.
+        '''
         n, m = X.shape
         W = w_init
         ext_interval = int(init_ext_interval)
@@ -75,8 +157,8 @@ class ProgressiveICALite():
                 else:
                     raise NameError(
                         'The value of proc_mode is invalid, it must be "fast" , "normal" or "precise". ')
-            _X = X[:, :int(m // ext_interval)]
-            # _X = X[:, ::int(ext_interval)]
+            # _X = X[:, :int(m // ext_interval)]
+            _X = X[:, ::int(ext_interval)]
             _X, V, V_inv = self._whiten_with_inv_v(_X)
             W = self._sym_decorrelation(np.dot(W, V_inv))
             W, lim = self._ica_par(_X, W, grad_var_tol, tol, g, max_iter)
@@ -92,6 +174,25 @@ class ProgressiveICALite():
         return W
 
     def pica(self, X, proc_mode='precise', init_ext_interval=None, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=None):
+        '''
+        # Usage:
+
+        # Parameters:
+
+            X: Whitened mixed signals.
+            proc_mode: Processing mode.
+            init_ext_interval: initial extration interval of pICA, minimum m//n
+            dynamic_adj_coef: alpha_1, increasing rate of subset
+            tol: tolerance of convergence
+            grad_var_tol: maximum grandient decreasing rate, h
+            fun: g(u)
+            max_iter: Maximum number of iteration.
+            w_init: w_0
+
+        # Output:
+
+            Separated source S_hat.
+        '''
         n, m = np.shape(X)
         if fun == 'logcosh':
             g = self._logcosh
