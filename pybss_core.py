@@ -4,6 +4,9 @@ import warnings
 
 class ProgressiveICALite():
 
+    def __init__(self) -> None:
+        pass
+
     def _whiten_with_inv_v(self, X):
         X -= X.mean(axis=-1)[:, np.newaxis]
         A = np.dot(X, X.T)
@@ -117,10 +120,10 @@ class ProgressiveICALite():
                 break
         else:
             warnings.warn(
-                'PICA did not converge. Consider increasing tolerance or the maximum number of iterations.')
+                'pICA/FastICA did not converge. Consider increasing tolerance or the maximum number of iterations.')
         return W, lim
 
-    def _pica(self, X, proc_mode, init_ext_interval, dynamic_adj_coef, tol, grad_var_tol, g, max_iter, w_init):
+    def _pica(self, X, init_ext_interval, dynamic_adj_coef, tol, grad_var_tol, g, max_iter, w_init, node_num):
         '''
         # Usage:
         Convergent pICA.
@@ -128,7 +131,6 @@ class ProgressiveICALite():
         # Parameters:
 
             X: Whitened mixed signals.
-            proc_mode: Processing mode.
             init_ext_interval: initial extration interval of pICA, minimum m//n
             dynamic_adj_coef: alpha_1, increasing rate of subset
             tol: tolerance of convergence
@@ -136,6 +138,7 @@ class ProgressiveICALite():
             g: g(u)
             max_iter: Maximum number of iteration.
             w_init: w_0
+            node_num: The number of the network nodes
 
         # Output:
 
@@ -146,19 +149,15 @@ class ProgressiveICALite():
         ext_interval = int(init_ext_interval)
         ext_interval_divisor = dynamic_adj_coef
         while(True):
-            if ext_interval < ext_interval_divisor:
-                if proc_mode == 'fast':
-                    ext_interval = ext_interval_divisor // dynamic_adj_coef
-                elif proc_mode == 'normal':
+            if node_num is not None:
+                node_num -=1
+                if node_num <= 0:
                     ext_interval = 1
-                elif proc_mode == 'precise':
-                    ext_interval = 1
-                    grad_var_tol = 0
-                else:
-                    raise NameError(
-                        'The value of proc_mode is invalid, it must be "fast" , "normal" or "precise". ')
-            # _X = X[:, :int(m // ext_interval)]
-            _X = X[:, ::int(ext_interval)]
+            if ext_interval <= 1:
+                ext_interval = 1
+                grad_var_tol = 0
+            _X = X[:, :int(m // ext_interval)].copy()
+            # _X = X[:, ::int(ext_interval)].copy()
             _X, V, V_inv = self._whiten_with_inv_v(_X)
             W = self._sym_decorrelation(np.dot(W, V_inv))
             W, lim = self._ica_par(_X, W, grad_var_tol, tol, g, max_iter)
@@ -173,15 +172,14 @@ class ProgressiveICALite():
             ext_interval //= ext_interval_divisor
         return W
 
-    def pica(self, X, proc_mode='precise', init_ext_interval=None, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=None):
+    def pica(self, X, init_ext_interval=None, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=None, node_num=None):
         '''
         # Usage:
 
         # Parameters:
 
             X: Whitened mixed signals.
-            proc_mode: Processing mode.
-            init_ext_interval: initial extration interval of pICA, minimum m//n
+            init_ext_interval: initial extration interval of pICA, maximum m//n
             dynamic_adj_coef: alpha_1, increasing rate of subset
             tol: tolerance of convergence
             grad_var_tol: maximum grandient decreasing rate, h
@@ -207,10 +205,46 @@ class ProgressiveICALite():
             init_ext_interval = m // n
         if w_init is None:
             w_init = np.random.random_sample((n, n))
-        W = self._pica(X, proc_mode,  init_ext_interval, dynamic_adj_coef,
-                       tol, grad_var_tol, g, max_iter, w_init)
-        S2 = np.dot(W, X)
-        return S2
+        W = self._pica(X, init_ext_interval, dynamic_adj_coef,
+                       tol, grad_var_tol, g, max_iter, w_init, node_num)
+        hat_S = np.dot(W, X)
+        return hat_S
 
+
+    def fastica(self, X, tol=0.001, fun='logcosh', max_iter=200, w_init=None):
+        '''
+        # Usage:
+
+        # Parameters:
+
+            X: Whitened mixed signals.
+            tol: tolerance of convergence
+            fun: g(u)
+            max_iter: Maximum number of iteration.
+            w_init: w_0
+
+        # Output:
+
+            Separated source S_hat.
+        '''
+        n, m = np.shape(X)
+        if fun == 'logcosh':
+            g = self._logcosh
+        elif fun == 'exp':
+            g = self._exp
+        elif fun == 'cube':
+            g = self._cube
+        else:
+            raise ValueError(
+                "Unknown function, the value of 'fun' should be one of 'logcosh', 'exp', 'cube'.")
+        if w_init is None:
+            w_init = np.random.random_sample((n, n))
+        _X = X.copy()
+        _X, V, V_inv = self._whiten_with_inv_v(_X)
+        W = self._sym_decorrelation(np.dot(w_init, V_inv))
+        W, lim = self._ica_par(_X, W, grad_var_tol=0, tol=tol, g=g, max_iter=max_iter)
+        W = np.dot(W, V)
+        hat_S = np.dot(W, X)
+        return hat_S
 
 picalite = ProgressiveICALite()

@@ -59,6 +59,3 @@ This project is licensed under the [MIT license](./LICENSE).
 ## Todo
 1. Add test data set.
 2. Merge version 1.0 with interval extration to the branch pICA-v1.0
-3. Replace the FastICA implementation of sklearn.
-4. Add maximum number of extraction.
-5. Add saving accuracy (W_k), size of used data (_X), process time each extraction.
