@@ -11,21 +11,22 @@ if __name__ == '__main__':
 
     # Load input data: S, A, and W_0
     dataset_id = 2 # i-th input data
-    fr = open('dataset/saxs10.pkl','rb')
+    fr = open('dataset/saxs.pkl','rb')
     saxs = pickle.load(fr)
     ss,aa,xx = saxs
     fr.close()
-    S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
     W = np.load("dataset/W.npy")
     # W = np.random.random((4,4))
 
     # Evaluation setup
-    test_num = 40 #repeat number
+    test_num = 50 #repeat number
     eval_type = 'sdr'
-    node_num = 6
+    node_num = 4
 
     Eval_dB = 0
     for i in range(test_num):
+        dataset_id = i
+        S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
         print('*** N_test: ', i+1, ' with ', node_num, ' network nodes.')
         pybss_tb.timer_start()
         hat_S = picalite.pica(X, init_ext_interval=4000, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W, node_num=node_num)

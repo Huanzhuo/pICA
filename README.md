@@ -32,6 +32,8 @@ These could be installed by `conda install numpy scipy museval progressbar2 ffmp
 ## Usage
 Testing setup can be done in `pybss_example.py`. Test results, including Separation Accuracy and Separation Time, are stored as ***.csv*** in the folder `measurement/`.
 
+Please click and download the [***saxs.pkl***](https://drive.google.com/drive/folders/1jSzZi1y0XPBZr06FfG7wnuZxAfoTVtAQ?usp=sharing) as testing data set in `dataset/`.
+
 ## Citation
 
 ```

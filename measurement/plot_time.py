@@ -24,9 +24,9 @@ def get_conf_interval(index, data, conf_rate):
 
 
 if __name__ == '__main__':
-    number_node = [0, 1, 2, 3, 4, 5, 6]
+    number_node = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     conf_rate = 0.95
-    number_test = 40
+    number_test = 50
 
     process_latency_cf = np.zeros(number_test)
     process_latency_sf = np.zeros(number_test)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
             'store_forward': 'v',
             'store_forward_ia': 's'
         }
-        barwidth = 0.2
+        barwidth = 0.3
 
         plt.rcParams.update({'font.size': 11})
 
@@ -97,8 +97,8 @@ if __name__ == '__main__':
         line2_fill = ax.fill_between(x_index, tp_sf_conf[:, 1],
                                      tp_sf_conf[:, 3], color=colordict['store_forward'], alpha=0.2)
         ax.set_xlabel(r'Number of nodes $k$')
-        ax.set_ylabel(r'Process latency ($ms$)')
-        ax.set_yticks(np.arange(0, 501, 100))
+        ax.set_ylabel(r'Process latency $t_p$ ($ms$)')
+        ax.set_yticks(np.arange(0, 701, 100))
         # ax.set_xlim([-0.2, 4.2])
         # ax.set_yticks(np.arange(0, 151, 30))
         ax.legend([line1, line2], ['pICA',
@@ -115,15 +115,15 @@ if __name__ == '__main__':
         bar1 = ax.bar(x_index-barwidth/2, db_cf_conf[:, 2], barwidth, yerr=db_cf_conf[:, 3] - db_cf_conf[:, 2],
                       error_kw=dict(lw=1, capsize=2, capthick=1), fill=True, color=colordict['compute_forward'], edgecolor='#FFFFFF', ecolor='#555555', hatch='\\')
         bar2 = ax.bar(x_index+barwidth/2, db_sf_conf[:, 2], barwidth, yerr=db_sf_conf[:, 3] - db_sf_conf[:, 2],
-                      error_kw=dict(lw=1, capsize=2, capthick=1), fill=True, color=colordict['store_forward'], edgecolor='#FFFFFF', ecolor='#555555', hatch='//')
+                      error_kw=dict(lw=1, capsize=2, capthick=1), fill=True, color=colordict['store_forward'], edgecolor='#FFFFFF', ecolor='#555555', hatch='/')
 
         ax.set_xlabel(r'Number of nodes $k$')
         ax.set_ylabel(r'Processing precision SDR ($dB$)')
-        ax.set_yticks(np.arange(0, 31, 5))
+        ax.set_yticks(np.arange(0, 41, 5))
         # ax.set_xlim([2, 60000])
         # ax.set_ylim([0, 201])
         ax.legend([bar1, bar2], [
-            'pICA', 'FastICA'], loc='upper left', ncol=2)
+            'pICA', 'FastICA'], loc='upper right', ncol=1)
         plt.xticks(range(len(number_node)), number_node)
         plt.savefig('measurement/process_accuracy.pdf',
                     dpi=600, bbox_inches='tight')
