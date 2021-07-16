@@ -20,9 +20,9 @@ if __name__ == '__main__':
     # W = np.random.random((4,4))
 
     # Evaluation setup
-    test_num = 5 #repeat number
-    eval_type = 'psnr'
-    node_num = 10
+    test_num = 40 #repeat number
+    eval_type = 'sdr'
+    node_num = 6
 
     Eval_dB = 0
     for i in range(test_num):
@@ -34,7 +34,7 @@ if __name__ == '__main__':
         Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
         pybss_tb.timer_resume()
         time = pybss_tb.timer_value()
-        measure_write('pICA_'+str(node_num), ['separation_accuracy', Eval_dB, 'separation_time', time])
+        measure_write('pICA_'+str(node_num), ['vnf', node_num, 'separation_accuracy', Eval_dB, 'separation_time', time])
         print('pICA    *** separation accuracy (dB): '+ str(Eval_dB) + ', separation time (ms): ' + str(time))
 
         pybss_tb.timer_start()
@@ -43,19 +43,5 @@ if __name__ == '__main__':
         Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
         pybss_tb.timer_resume()
         time = pybss_tb.timer_value()
-        measure_write('FastICA_'+str(node_num), ['separation_accuracy', Eval_dB, 'separation_time', time])
+        measure_write('FastICA_'+str(node_num), ['vnf', node_num, 'separation_accuracy', Eval_dB, 'separation_time', time])
         print('FastICA *** separation accuracy (dB): '+ str(Eval_dB) + ', separation time (ms): ' + str(time))
-
-
-    # for i in range(test_num):
-    #     print('*** N_test:', i+1)
-    #     pybss_tb.timer_start()
-    #     # i = dataset_id
-    #     # S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
-    #     hat_S = picalite.fastica(X, tol=0.0001, fun='logcosh', max_iter=200, w_init=W)
-    #     pybss_tb.timer_suspend()
-    #     Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
-    #     pybss_tb.timer_resume()
-    #     time = pybss_tb.timer_value()
-    #     measure_write('FastICA_'+str(2), ['separation_accuracy', Eval_dB, 'separation_time', time])
-    #     print('FastICA *** separation accuracy (dB): '+ str(Eval_dB) + ', separation time (ms): ' + str(time))
