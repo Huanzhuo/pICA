@@ -146,7 +146,8 @@ class ProgressiveICALite():
         '''
         n, m = X.shape
         W = w_init
-        ext_interval = int(init_ext_interval)
+        ext_interval = init_ext_interval
+        # ext_interval = int(init_ext_interval)
         ext_interval_divisor = dynamic_adj_coef
         while(True):
             if node_num is not None:
@@ -156,7 +157,7 @@ class ProgressiveICALite():
             if ext_interval <= 1:
                 ext_interval = 1
                 grad_var_tol = 0
-            _X = X[:, :int(m // ext_interval)].copy()
+            _X = X[:, :int(m / ext_interval)].copy()
             # _X = X[:, ::int(ext_interval)].copy()
             _X, V, V_inv = self._whiten_with_inv_v(_X)
             W = self._sym_decorrelation(np.dot(W, V_inv))
@@ -168,8 +169,8 @@ class ProgressiveICALite():
                 ext_interval_divisor *= dynamic_adj_coef
             else:
                 ext_interval_divisor = max(
-                    dynamic_adj_coef, ext_interval_divisor // dynamic_adj_coef)
-            ext_interval //= ext_interval_divisor
+                    dynamic_adj_coef, ext_interval_divisor / dynamic_adj_coef)
+            ext_interval /= ext_interval_divisor
         return W
 
     def pica(self, X, init_ext_interval=None, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=None, node_num=None):

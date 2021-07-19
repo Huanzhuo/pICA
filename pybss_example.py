@@ -10,7 +10,7 @@ import pickle
 if __name__ == '__main__':
 
     # Load input data: S, A, and W_0
-    dataset_id = 3 # i-th input data
+    dataset_id = 1 # i-th input data
     fr = open('dataset/saxs10.pkl','rb')
     saxs = pickle.load(fr)
     ss,aa,xx = saxs
