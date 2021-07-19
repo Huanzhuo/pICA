@@ -24,7 +24,7 @@ def get_conf_interval(index, data, conf_rate):
 
 
 if __name__ == '__main__':
-    number_node = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    number_node = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     conf_rate = 0.95
     number_test = 50
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
                                      tp_sf_conf[:, 3], color=colordict['store_forward'], alpha=0.2)
         ax.set_xlabel(r'Number of nodes $k$')
         ax.set_ylabel(r'Process latency $t_p$ ($ms$)')
-        ax.set_yticks(np.arange(0, 701, 100))
+        ax.set_yticks(np.arange(80, 201, 20))
         # ax.set_xlim([-0.2, 4.2])
         # ax.set_yticks(np.arange(0, 151, 30))
         ax.legend([line1, line2], ['pICA',

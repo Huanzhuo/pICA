@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
     # Load input data: S, A, and W_0
     dataset_id = 2 # i-th input data
-    fr = open('dataset/saxs.pkl','rb')
+    fr = open('dataset/saxsNew.pkl','rb')
     saxs = pickle.load(fr)
     ss,aa,xx = saxs
     fr.close()
