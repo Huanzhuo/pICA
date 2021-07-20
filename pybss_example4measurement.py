@@ -1,5 +1,6 @@
 from typing import no_type_check
 from numpy.core.fromnumeric import repeat
+from numpy.testing._private.utils import measure
 from pybss_testbed import *
 import numpy as np
 from tqdm import tqdm
@@ -9,6 +10,7 @@ matplotlib.use('TkAgg')
 import pickle
 import json
 import warnings
+from measurement.measure import measure_write
 
 colordict = {
     'meica': '#7ACFE5',
@@ -349,191 +351,36 @@ picalite = ProgressiveICALite()
 
 if __name__ == '__main__': 
     ext = ''
-    repeat_num = 2
-    machine_num = 4
-    if False:
-        res = {}
-        fr = open('dataset/saxs10.pkl','rb')
-        saxs = pickle.load(fr)
-        ss,aa,xx = saxs
-        fr.close()
+    nodes_num = 7
+    dataset_id = 0
 
-        w_init = np.load("dataset/W.npy")
-        
-        base = 2
-        u_0 = 2000
-        tol = 1e-4
-        dataset_id = 2
-        
-        for node_num in [10]:
-            _res = {}
-            _res['pica'] = {'ws':[],'snrs':[],'sdrs':[],'u0s':[],'times':[],'times_all':[],'xlens':[]}
+    fr = open('dataset/saxsNew.pkl','rb')
+    saxs = pickle.load(fr)
+    ss,aa,xx = saxs
+    fr.close()
+    
+    w_init = np.ones((4,4)) * 0.25
+    
+    base = 2
+    u_0 = 160000/1280
+    tol = 1e-4
+    
+    _res = {}
+    _res['pica'] = {'ws':[],'snrs':[],'sdrs':[],'u0s':[],'times':[],'times_all':[],'xlens':[]}
 
-            for i in tqdm(range(repeat_num)):
-                i = dataset_id
-                S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
-                picalite.init(node_num,S,X)
-                hat_S = picalite.pica(X, init_ext_interval=u_0, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=w_init, node_num=node_num)
-                _res['pica']['times'].append(picalite.ts)
-                _res['pica']['times_all'].append(picalite.ts_all)
-                _res['pica']['ws'].append(picalite.ws)
-                _res['pica']['snrs'].append(picalite.snrs)
-                _res['pica']['sdrs'].append(picalite.sdrs)
-                _res['pica']['u0s'].append(picalite.u0s)
-                _res['pica']['xlens'].append(picalite.xlens)
+    S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
+    picalite.init(nodes_num,S,X)
+    hat_S = picalite.pica(X, init_ext_interval=u_0, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=w_init, node_num=nodes_num)
+    # _res['pica']['times'].append(picalite.ts)
+    # _res['pica']['times_all'].append(picalite.ts_all)
+    # _res['pica']['ws'].append(picalite.ws)
+    # _res['pica']['snrs'].append(picalite.snrs)
+    # _res['pica']['sdrs'].append(picalite.sdrs)
+    # _res['pica']['u0s'].append(picalite.u0s)
+    # _res['pica']['xlens'].append(picalite.xlens)
 
-            res[node_num]=_res
-        json.dump(res,open('measurement/measure_node_execution_50'+ext+'.json', 'w'))
-    
-    
-    
-    
-    res = json.load(open('measurement/measure_node_execution_50'+ext+'.json', 'r'))
+    measure_write('pICA_'+str(nodes_num)+'details', picalite.xlens)
+    measure_write('pICA_'+str(nodes_num)+'details', picalite.ts)
+    measure_write('pICA_'+str(nodes_num)+'details', picalite.sdrs)
 
-    _res = res['10']
-    
-    def draw_line(typ,eval_type):
-        x0 = np.arange(0, 9, 1)
-        vals = _res[typ][eval_type]
-        y = np.mean(vals,axis=0)
-        std = np.std(vals,axis=0)
-        y1 = y - 1.96*std
-        y2 = y + 1.96*std
-        line = ax.errorbar(
-            x0, y, color=colordict[typ], lw=1, ls='-', marker=markerdict[typ], ms=3)
-        line_fill = ax.fill_between(x0, y1,y2, color=colordict[typ], alpha=0.2)
-        return line
-    
-    def draw_box(typ,eval_type,off_set):
-        vals = _res[typ][eval_type]
-        x0 = np.arange(1,len(vals)+1, 1)
-        box = ax.boxplot(vals,positions=x0+off_set,widths=barwidth,patch_artist=True, boxprops = {'color':'black','facecolor':colordict[typ]})
-        return box
-    
-    def draw_scatter(typ,eval_type,off_set):
-        vals = _res[typ][eval_type]
-        y = np.mean(vals,axis=0)
-        x0 = list(np.arange(0,len(vals[0]), 1))
-        ys = _res[typ][eval_type]
-        xx,yy = [],[]
-        for i in range(len(ys)):
-            yy += ys[i]
-            xx += x0
-        line = ax.scatter(xx, yy, color=colordict[typ], marker=markerdict[typ],s=20)
-        x,y =xx,yy
-        res ={}
-        for _x,_y in zip(x,y):
-            if _x in res:
-                if _x>0:
-                    res[_x] = res[_x] + [_y]
-            else:
-                if _x>0:
-                    res[_x] = [_y]
-        xx,yy = [],[]
-        for key in sorted(res.keys()):
-            xx.append(key)
-            yy.append(np.mean(res[key]))
-        line = ax.errorbar(
-            xx, yy, color=colordict[typ], lw=1, ls='-')         
-        return line
-    
-    def draw_scatter_payload(typ,eval_type,off_set):
-        ys = _res[typ][eval_type]
-        xs = _res[typ]['xlens'] #np.arange(0,len(vals[0]), 1)
-        x,y=[],[]
-        for i in range(len(ys)):
-            x += xs[i]
-            y += ys[i]
-        x = np.array(x)
-        y = np.array(y)
-        line = ax.scatter(x, y, color=colordict[typ], marker=markerdict[typ],s=20)
-        res ={}
-        for _x,_y in zip(x,y):
-            if _x in res:
-                if _x>0:
-                    res[_x] = res[_x] + [_y]
-            else:
-                if _x>0:
-                    res[_x] = [_y]
-        xx,yy = [],[]
-        for key in sorted(res.keys()):
-            xx.append(key)
-            yy.append(np.mean(res[key]))
-        line = ax.errorbar(
-            xx, yy, color=colordict[typ], lw=1, ls='-')        
-        return line
-    
-    # Node Execution ####################################################
-    for eval_type in ['times','sdrs','xlens']:
-        with plt.style.context(['science', 'ieee']):
-            fig = plt.figure(figsize=(figwidth, figheight))
-            ax = fig.add_subplot(1, 1, 1)
-            ax.yaxis.grid(True, linestyle='--', which='major',
-                        color='lightgrey', alpha=0.5, linewidth=0.2)
-            x_step = np.arange(0, 12, 1)
-            line2 = draw_scatter('pica',eval_type,-barwidth)
-            if eval_type == 'times':
-                ax.set_ylabel(r'Processing time ($ms$)')
-                ax.set_yticks(np.arange(0, 55, 10))
-            if eval_type == 'sdrs':
-                ax.set_ylabel(r'SDR ($dB$)')
-                ax.set_yticks(np.arange(0, 40, 5))
-            if eval_type == 'xlens':
-                ax.set_ylabel(r'Data usage $l_k$')
-                ax.set_yscale('log')
-                ax.set_ylim([40,1600000])
-            plt.xticks(x_step, ['Client', 'Node 1', 'Node 2', 'Node 3',
-                                'Node 4', 'Node 5', 'Node 6', 'Node 7', 'Server'], rotation=45)
-            ax.set_xlim([-0.5, 11.5])
-            ax.legend([line2,], [
-                'pICA', ], loc='upper left')
-            plt.savefig('measurement/'+eval_type+'_intermeidate_res_50.pdf', dpi=1200, bbox_inches='tight')
-
-    # Payload size #########################
-    for eval_type in ['times','sdrs',]:
-        with plt.style.context(['science', 'ieee']):
-            fig = plt.figure(figsize=(figwidth, figheight))
-            ax = fig.add_subplot(1, 1, 1)
-            ax.yaxis.grid(True, linestyle='--', which='major',
-                        color='lightgrey', alpha=0.5, linewidth=0.2)
-            x_step = np.arange(0, 9, 1)
-            line2 = draw_scatter_payload('pica',eval_type,-barwidth)
-            if eval_type == 'times':
-                ax.set_ylabel(r'Processing time ($ms$)')
-                ax.set_yticks(np.arange(0, 125, 10))
-                ax.set_ylim([0,125])
-            if eval_type == 'sdrs':
-                ax.set_ylabel(r'SDR ($dB$)')
-                ax.set_yticks(np.arange(0, 40, 5))
-            ax.set_xlabel(r'Data usage (Payload size) $l_k$')
-            ax.set_xscale('log')
-            ax.set_xlim([40,300000])
-            ax.legend([line2,], [
-                'pICA', ], loc='upper left')
-            plt.savefig('measurement/'+eval_type+'_mid_payload_size_res_50.pdf', dpi=1200, bbox_inches='tight')
-
-
-
-    # Time #########################################################
-    def draw_line(typ, eval_type):
-        x0 = _res[typ]['times_all'][0]
-        y = _res[typ][eval_type][0]
-        line = ax.errorbar(
-            x0, y, color=colordict[typ], lw=1, ls='-', marker=markerdict[typ], ms=3)
-        return line
-    for eval_type in ['sdrs',]:
-        with plt.style.context(['science']):
-            fig = plt.figure(figsize=(figwidth,  figheight))
-            ax = fig.add_subplot(1, 1, 1)
-            ax.yaxis.grid(True, linestyle='--', which='major',
-                            color='lightgrey', alpha=0.5, linewidth=0.2)
-            line1 = draw_line('pica', eval_type)
-            ax.set_xlabel(r'Processing time $t_p$ $(ms)$')    
-            if eval_type == 'sdrs':
-                ax.set_ylabel(r'SDR ($dB$)')
-                ax.set_yticks(np.arange(0, 40, 5))
-            # ax.set_xlim([-0.5, 9.5])
-            # plt.xticks(x0,160000//np.array(list(map(int, np.array(x_u0['pica'])+0.5))))
-            ax.legend([line1], [
-                'pICA',], loc='upper left')
-            plt.savefig('measurement/'+eval_type+'_time_intermeidate_res_50.pdf',dpi=1200, bbox_inches='tight')
+    np.loadtxt('measurement/pICA_7details.csv', delimiter=',', usecols=[0])
