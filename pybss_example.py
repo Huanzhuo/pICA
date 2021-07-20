@@ -10,17 +10,17 @@ import pickle
 if __name__ == '__main__':
 
     # Load input data: S, A, and W_0
-    dataset_id = 1 # i-th input data
-    fr = open('dataset/saxs10.pkl','rb')
+    dataset_id = 3 # i-th input data
+    fr = open('dataset/saxsNew.pkl','rb')
     saxs = pickle.load(fr)
     ss,aa,xx = saxs
     fr.close()
     W = np.load("dataset/W.npy")
-    # W = np.ones((4,4))/4
+    W = np.ones((4,4)) * 0.25
     # W = np.random.random((4,4))
 
     # Evaluation setup
-    test_num = 5 #repeat number
+    test_num = 1 #repeat number
     eval_type = 'psnr'
 
     # res = {}
@@ -34,8 +34,8 @@ if __name__ == '__main__':
         print('*** N_test:', i+1)
         pybss_tb.timer_start()
         i = dataset_id
-        S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
-        hat_S = picalite.pica(X, init_ext_interval=4000, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W)
+        S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy().astype(np.float32)
+        hat_S = picalite.pica(X, init_ext_interval=125, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W)
         # hat_S = picalite.pica(X, init_ext_interval=4000, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200)
         pybss_tb.timer_suspend()
         Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
