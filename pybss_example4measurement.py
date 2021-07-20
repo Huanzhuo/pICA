@@ -220,7 +220,7 @@ class ProgressiveICALite(REC):
         '''
         n, m = X.shape
         W = w_init
-        ext_interval = int(init_ext_interval)
+        ext_interval = init_ext_interval
         ext_interval_divisor = dynamic_adj_coef
         while(True):
             if node_num is not None:
@@ -233,13 +233,13 @@ class ProgressiveICALite(REC):
             if ext_interval <= 1:
                 ext_interval = 1
                 grad_var_tol = 0
-            _X = X[:, :int(m // ext_interval)].copy()
+            _X = X[:, :int(m / ext_interval)].copy().astype(np.float32)
             # _X = X[:, ::int(ext_interval)].copy()
             _X, V, V_inv = self._whiten_with_inv_v(_X)
             W = self._sym_decorrelation(np.dot(W, V_inv))
             W, lim = self._ica_par(_X, W, grad_var_tol, tol, g, max_iter)
             W = np.dot(W, V)
-            if ext_interval < ext_interval_divisor:
+            if grad_var_tol == 0:
                 break
             #++
             self.__rec_node_info__(self.init_node_num-self.node_num,W,ext_interval)
@@ -248,8 +248,8 @@ class ProgressiveICALite(REC):
                 ext_interval_divisor *= dynamic_adj_coef
             else:
                 ext_interval_divisor = max(
-                    dynamic_adj_coef, ext_interval_divisor // dynamic_adj_coef)
-            ext_interval //= ext_interval_divisor
+                    dynamic_adj_coef, ext_interval_divisor / dynamic_adj_coef)
+            ext_interval /= ext_interval_divisor
         return W
 
     def pica(self, X, init_ext_interval=None, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=None, node_num=None):
@@ -351,7 +351,7 @@ picalite = ProgressiveICALite()
 
 if __name__ == '__main__': 
     ext = ''
-    nodes_num = 7
+    nodes_num = 6
     dataset_id = 0
 
     fr = open('dataset/saxsNew.pkl','rb')

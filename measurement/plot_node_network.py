@@ -24,9 +24,9 @@ def get_conf_interval(index, data, conf_rate):
 
 
 if __name__ == '__main__':
-    number_node = [0, 1, 2, 3, 4, 5]
+    number_node = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     conf_rate = 0.95
-    number_test = 50
+    number_test = 30
 
     process_latency_cf = np.zeros(number_test)
     process_latency_sf = np.zeros(number_test)
