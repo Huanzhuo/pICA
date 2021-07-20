@@ -49,8 +49,8 @@ if __name__ == '__main__':
         separation_accuracy_sf = np.row_stack(
             (separation_accuracy_sf, store_forward[:, 0]))
 
-    process_latency_cf = process_latency_cf[1:, :]/1000
-    process_latency_sf = process_latency_sf[1:, :]/1000
+    process_latency_cf = process_latency_cf[1:, :]
+    process_latency_sf = process_latency_sf[1:, :]
     separation_accuracy_cf = separation_accuracy_cf[1:, :]
     separation_accuracy_sf = separation_accuracy_sf[1:, :]
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
                                      tp_sf_conf[:, 3], color=colordict['store_forward'], alpha=0.2)
         ax.set_xlabel(r'Number of nodes $k$')
         ax.set_ylabel(r'Process latency $t_p$ ($s$)')
-        ax.set_yticks(np.arange(0, 0.251, 0.05))
+        ax.set_yticks(np.arange(0, 251, 50))
         # ax.set_xlim([-0.2, 4.2])
         # ax.set_yticks(np.arange(0, 151, 30))
         ax.legend([line1, line2], ['pICA',
