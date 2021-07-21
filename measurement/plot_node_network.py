@@ -24,9 +24,9 @@ def get_conf_interval(index, data, conf_rate):
 
 
 if __name__ == '__main__':
-    number_node = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    number_node = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     conf_rate = 0.95
-    number_test = 30
+    number_test = 50
 
     process_latency_cf = np.zeros(number_test)
     process_latency_sf = np.zeros(number_test)
@@ -49,8 +49,8 @@ if __name__ == '__main__':
         separation_accuracy_sf = np.row_stack(
             (separation_accuracy_sf, store_forward[:, 0]))
 
-    process_latency_cf = process_latency_cf[1:, :]
-    process_latency_sf = process_latency_sf[1:, :]
+    process_latency_cf = process_latency_cf[1:, :]/1000
+    process_latency_sf = process_latency_sf[1:, :]/1000
     separation_accuracy_cf = separation_accuracy_cf[1:, :]
     separation_accuracy_sf = separation_accuracy_sf[1:, :]
 
@@ -100,9 +100,9 @@ if __name__ == '__main__':
         ax.set_ylabel(r'Process latency $t_p$ ($s$)')
         # ax.set_yticks(np.arange(0, 251, 50))
         # ax.set_xlim([-0.2, 4.2])
-        # ax.set_yticks(np.arange(0, 151, 30))
+        ax.set_yticks(np.arange(0, 0.25, 0.04))
         ax.legend([line1, line2], ['pICA',
-                                   'FastICA'], loc='upper right')
+                                   'FastICA'], loc='lower left')
         plt.xticks(range(len(number_node)), number_node)
         plt.savefig('measurement/process_latency_simu.pdf',
                     dpi=600, bbox_inches='tight')
