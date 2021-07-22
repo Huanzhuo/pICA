@@ -74,7 +74,7 @@ class REC():
             self.snrs[i] = self.snrs[node_i]
             self.sdrs[i] = self.sdrs[node_i]
             self.u0s[i] = self.u0s[node_i]
-        en_server_fastica = True # only server runs fastica
+        en_server_fastica = False # only server runs fastica
         if en_server_fastica:
             for arr in [self.ts, self.xlens]:
                 arr[-1]=arr[node_i]
