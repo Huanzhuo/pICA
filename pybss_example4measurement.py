@@ -287,8 +287,10 @@ class ProgressiveICALite(REC):
         if w_init is None:
             w_init = np.random.random_sample((n, n))
         #++
+        
         self.init_node_num = node_num
         self.node_num = node_num
+        node_num=node_num+1
         self.tb.timer_start()
         self.__rec_node_info__(0,w_init,init_ext_interval)
         #--
@@ -351,7 +353,7 @@ picalite = ProgressiveICALite()
 
 if __name__ == '__main__': 
     ext = ''
-    nodes_num = 6
+    nodes_num = 3
     dataset_id = 0
 
     fr = open('dataset/saxsNew.pkl','rb')
@@ -383,4 +385,4 @@ if __name__ == '__main__':
     measure_write('pICA_'+str(nodes_num)+'details', picalite.ts)
     measure_write('pICA_'+str(nodes_num)+'details', picalite.sdrs)
 
-    np.loadtxt('measurement/pICA_7details.csv', delimiter=',', usecols=[0])
+    np.loadtxt('measurement/pICA_'+str(nodes_num)+'details.csv', delimiter=',', usecols=[0])
