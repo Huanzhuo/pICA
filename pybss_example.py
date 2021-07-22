@@ -48,8 +48,10 @@ if __name__ == '__main__':
             #       str(Eval_dB) + ', separation time (ms): ' + str(time))
 
             pybss_tb.timer_start()
-            hat_S = picalite.pica(X, init_ext_interval=125, dynamic_adj_coef=2, tol=0.0001,
-                                  grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W, node_num=node_num[node])
+            hat_S = picalite.pica(X, init_ext_interval=125, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W, node_num=node_num[node])
+            # hat_S = picalite.aeica(X, ext_adapt_ica=125, tol=0.0001, fun='logcosh', max_iter=200, w_init=W, node_num=node_num[node])
+
+            
             pybss_tb.timer_suspend()
             Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
             pybss_tb.timer_resume()

@@ -247,4 +247,94 @@ class ProgressiveICALite():
         hat_S = np.dot(W, X)
         return hat_S
 
+
+
+    def adaptive_extraction_iteration(self, X, W, g, max_iter, tol, ext_adapt_ica):
+        '''
+        # adaptive_extraction_iteration(self, X, B, max_iter, tol, _ext_adapt_ica):
+
+        # Usage:
+
+            Adaptive extraction newton iteration.
+            It is a combination of several fastica algorithm with different partial
+            signals, which is extracted by different intervals. the extraction 
+            interval can be detemined by the convergence of the iteration.
+
+        # Parameters:
+
+            X: Mixed signals, which is obtained from the observers.
+            max_iter: Maximum number of iteration.
+            tol: Tolerance of the convergence of the matrix B 
+                calculated from the last iteration and the 
+                matrix B calculated from current newton iteration.
+            _ext_adapt_ica: The intial and the maximum extraction interval of the 
+                input signals.
+
+        # Output:
+
+            Estimated source separation matrix B.
+        '''
+        _prop_series = np.arange(1, ext_adapt_ica)
+        grads_num = _prop_series.shape[0]
+        _tols = tol*(_prop_series**0.5)
+        _tol = 1
+        for i in range(grads_num-1, 0, -1):
+            if _tol > _tols[i]:
+                _X = X[:, ::int(_prop_series[i])]
+                _X, V, V_inv = self._whiten_with_inv_v(_X)
+                W = self._sym_decorrelation(np.dot(W, V_inv))
+                W, _tol = self._ica_par(_X, W, grad_var_tol=0, tol=_tols[i], g=g, max_iter=max_iter)
+                W = np.dot(W, V)
+        _X = X
+        _X, V, V_inv = self._whiten_with_inv_v(_X)
+        W = self._sym_decorrelation(np.dot(W, V_inv))
+        W, _tol = self._ica_par(_X, W, grad_var_tol=0, tol=tol, g=g, max_iter=max_iter)
+        W = np.dot(W, V)
+        return W
+
+    def aeica(self, X, ext_adapt_ica=50, tol=1e-04, fun='logcosh', max_iter=100, w_init=None, node_num=5):
+
+        '''
+        # aeica(self, X, max_iter=100, tol=1e-04, ext_adapt_ica=30):
+
+        # Usage:
+
+            Adaptive extraction ICA.
+            It is a combination of several fastica algorithm with different partial
+            signals, which is extracted by different intervals. the extraction 
+            interval can be detemined by the convergence of the iteration.
+            A original fastica is added at the end, in order to get the best result.
+
+        # Parameters:
+
+            X: Mixed signals, which is obtained from the observers.
+            max_iter: Maximum number of iteration.
+            tol: Tolerance of the convergence of the matrix B 
+                calculated from the last iteration and the 
+                matrix B calculated from current newton iteration.
+            _ext_adapt_ica: The intial and the maximum extraction interval of the 
+                input signals.
+
+        # Output:
+
+            Estimated source signals matrix S.
+        '''
+        n, m = np.shape(X)
+        if fun == 'logcosh':
+            g = self._logcosh
+        elif fun == 'exp':
+            g = self._exp
+        elif fun == 'cube':
+            g = self._cube
+        else:
+            raise ValueError(
+                "Unknown function, the value of 'fun' should be one of 'logcosh', 'exp', 'cube'.")
+        if w_init is None:
+            w_init = np.random.random_sample((n, n))
+        self.init_node_num = node_num
+        self.node_num = node_num
+        W = self.adaptive_extraction_iteration(X, w_init, g, max_iter, tol, ext_adapt_ica)
+        hat_S = np.dot(W, X)
+        return hat_S
+
 picalite = ProgressiveICALite()

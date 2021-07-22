@@ -74,6 +74,18 @@ class REC():
             self.snrs[i] = self.snrs[node_i]
             self.sdrs[i] = self.sdrs[node_i]
             self.u0s[i] = self.u0s[node_i]
+        en_server_fastica = True # only server runs fastica
+        if en_server_fastica:
+            for arr in [self.ts, self.xlens]:
+                arr[-1]=arr[node_i]
+                arr[node_i]=0
+            diff=-1
+            for i in range(node_i,self.init_node_num+1):
+                self.ts_all[i] = self.ts_all[node_i+diff]
+                self.snrs[i] = self.snrs[node_i+diff]
+                self.sdrs[i] = self.sdrs[node_i+diff]
+                self.u0s[i] = self.u0s[node_i+diff]
+
 
 
 class ProgressiveICALite(REC):
@@ -197,7 +209,7 @@ class ProgressiveICALite(REC):
                 'pICA/FastICA did not converge. Consider increasing tolerance or the maximum number of iterations.')
         return W, lim
 
-    def _pica(self, X, init_ext_interval, dynamic_adj_coef, tol, grad_var_tol, g, max_iter, w_init, node_num):
+    def _pica(self, X, init_ext_interval, dynamic_adj_coef, tol, grad_var_tol, g, max_iter, w_init):
         '''
         # Usage:
         Convergent pICA.
@@ -223,13 +235,10 @@ class ProgressiveICALite(REC):
         ext_interval = init_ext_interval
         ext_interval_divisor = dynamic_adj_coef
         while(True):
-            if node_num is not None:
-                node_num -=1
-                if node_num < 0:
+            if self.node_num is not None:
+                self.node_num -=1
+                if self.node_num < 0:
                     ext_interval = 1
-            #++
-            self.node_num = node_num
-            #--
             if ext_interval <= 1:
                 ext_interval = 1
                 grad_var_tol = 0
@@ -290,12 +299,11 @@ class ProgressiveICALite(REC):
         
         self.init_node_num = node_num
         self.node_num = node_num
-        node_num=node_num+1
         self.tb.timer_start()
         self.__rec_node_info__(0,w_init,init_ext_interval)
         #--
         W = self._pica(X, init_ext_interval, dynamic_adj_coef,
-                       tol, grad_var_tol, g, max_iter, w_init, node_num)
+                       tol, grad_var_tol, g, max_iter, w_init)
         hat_S = np.dot(W, X)
         #++
         self.__rec_node_info__(self.init_node_num-self.node_num,W,1)
@@ -340,6 +348,112 @@ class ProgressiveICALite(REC):
         hat_S = np.dot(W, X)
         return hat_S
 
+
+
+    def adaptive_extraction_iteration(self, X, W, g, max_iter, tol, ext_adapt_ica):
+        '''
+        # adaptive_extraction_iteration(self, X, B, max_iter, tol, _ext_adapt_ica):
+
+        # Usage:
+
+            Adaptive extraction newton iteration.
+            It is a combination of several fastica algorithm with different partial
+            signals, which is extracted by different intervals. the extraction 
+            interval can be detemined by the convergence of the iteration.
+
+        # Parameters:
+
+            X: Mixed signals, which is obtained from the observers.
+            max_iter: Maximum number of iteration.
+            tol: Tolerance of the convergence of the matrix B 
+                calculated from the last iteration and the 
+                matrix B calculated from current newton iteration.
+            _ext_adapt_ica: The intial and the maximum extraction interval of the 
+                input signals.
+
+        # Output:
+
+            Estimated source separation matrix B.
+        '''
+        _prop_series = np.arange(1, ext_adapt_ica)
+        grads_num = _prop_series.shape[0]
+        _tols = tol*(_prop_series**0.5)
+        _tol = 1
+        # print('------------')
+        for i in range(grads_num-1, 0, -1):
+            if _tol > _tols[i]:
+                #++
+                self.node_num -= 1
+                if self.node_num < 0:
+                    break
+                #++
+                _X = X[:, ::int(_prop_series[i])]
+                _X, V, V_inv = self._whiten_with_inv_v(_X)
+                W = self._sym_decorrelation(np.dot(W, V_inv))
+                W, _tol = self._ica_par(_X, W, grad_var_tol=0, tol=_tols[i], g=g, max_iter=max_iter)
+                W = np.dot(W, V)
+                #++
+                self.__rec_node_info__(self.init_node_num-self.node_num,W,int(_prop_series[i]))
+        if self.node_num >= 0:
+            self.node_num -= 1
+        _X = X
+        _X, V, V_inv = self._whiten_with_inv_v(_X)
+        W = self._sym_decorrelation(np.dot(W, V_inv))
+        W, _tol = self._ica_par(_X, W, grad_var_tol=0, tol=tol, g=g, max_iter=max_iter)
+        W = np.dot(W, V)
+        return W
+
+    def aeica(self, X, ext_adapt_ica=50, tol=1e-04, fun='logcosh', max_iter=100, w_init=None, node_num=5):
+
+        '''
+        # aeica(self, X, max_iter=100, tol=1e-04, ext_adapt_ica=30):
+
+        # Usage:
+
+            Adaptive extraction ICA.
+            It is a combination of several fastica algorithm with different partial
+            signals, which is extracted by different intervals. the extraction 
+            interval can be detemined by the convergence of the iteration.
+            A original fastica is added at the end, in order to get the best result.
+
+        # Parameters:
+
+            X: Mixed signals, which is obtained from the observers.
+            max_iter: Maximum number of iteration.
+            tol: Tolerance of the convergence of the matrix B 
+                calculated from the last iteration and the 
+                matrix B calculated from current newton iteration.
+            _ext_adapt_ica: The intial and the maximum extraction interval of the 
+                input signals.
+
+        # Output:
+
+            Estimated source signals matrix S.
+        '''
+        n, m = np.shape(X)
+        if fun == 'logcosh':
+            g = self._logcosh
+        elif fun == 'exp':
+            g = self._exp
+        elif fun == 'cube':
+            g = self._cube
+        else:
+            raise ValueError(
+                "Unknown function, the value of 'fun' should be one of 'logcosh', 'exp', 'cube'.")
+        if w_init is None:
+            w_init = np.random.random_sample((n, n))
+        self.init_node_num = node_num
+        self.node_num = node_num
+        self.tb.timer_start()
+        #++
+        self.__rec_node_info__(self.init_node_num-self.node_num,w_init,ext_adapt_ica)
+        W = self.adaptive_extraction_iteration(X, w_init, g, max_iter, tol, ext_adapt_ica)
+        hat_S = np.dot(W, X)
+        #++
+        self.__rec_node_info__(self.init_node_num-self.node_num,W,1)
+        self.__rec_finish___(self.init_node_num-self.node_num)
+        return hat_S
+
 picalite = ProgressiveICALite()
 
 
@@ -353,7 +467,7 @@ picalite = ProgressiveICALite()
 
 if __name__ == '__main__': 
     ext = ''
-    nodes_num = 3
+    nodes_num = 10
     dataset_id = 0
 
     fr = open('dataset/saxsNew.pkl','rb')
@@ -372,7 +486,7 @@ if __name__ == '__main__':
 
     S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
     picalite.init(nodes_num,S,X)
-    hat_S = picalite.pica(X, init_ext_interval=u_0, dynamic_adj_coef=2, tol=0.001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=w_init, node_num=nodes_num)
+    hat_S = picalite.pica(X, init_ext_interval=u_0, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.9, fun='logcosh', max_iter=200, w_init=w_init, node_num=nodes_num)
     # _res['pica']['times'].append(picalite.ts)
     # _res['pica']['times_all'].append(picalite.ts_all)
     # _res['pica']['ws'].append(picalite.ws)
@@ -386,3 +500,17 @@ if __name__ == '__main__':
     measure_write('pICA_'+str(nodes_num)+'details', picalite.sdrs)
 
     np.loadtxt('measurement/pICA_'+str(nodes_num)+'details.csv', delimiter=',', usecols=[0])
+
+
+    #AEICA
+
+    S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
+    picalite.init(nodes_num,S,X)
+    hat_S = picalite.aeica(X, ext_adapt_ica=u_0, tol=0.0001, fun='logcosh', max_iter=200, w_init=w_init, node_num=nodes_num)
+
+
+    measure_write('AeICA_'+str(nodes_num)+'details', picalite.xlens)
+    measure_write('AeICA_'+str(nodes_num)+'details', picalite.ts)
+    measure_write('AeICA_'+str(nodes_num)+'details', picalite.sdrs)
+
+    np.loadtxt('measurement/AeICA_'+str(nodes_num)+'details.csv', delimiter=',', usecols=[0])
