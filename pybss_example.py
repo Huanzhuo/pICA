@@ -10,68 +10,63 @@ import pickle
 if __name__ == '__main__':
 
     # Load input data: S, A, and W_0
-    dataset_id = 3 # i-th input data
-    fr = open('dataset/saxsNew.pkl','rb')
+    dataset_id = 3  # i-th input data
+    node_num = None
+
+    fr = open('dataset/saxsNew.pkl', 'rb')
     saxs = pickle.load(fr)
-    ss,aa,xx = saxs
+    ss, aa, xx = saxs
     fr.close()
-    W = np.load("dataset/W.npy")
-    W = np.ones((4,4)) * 0.25
-    # W = np.random.random((4,4))
+    # W = np.load("dataset/W.npy")
+    W = np.ones((4, 4))*0.25
 
     # Evaluation setup
-    test_num = 1 #repeat number
+    test_num = 30  # repeat number
     eval_type = 'psnr'
+    # node_num = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    node_num = [5, 6]
+    extraction_num = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
-    # res = {}
-    # res['picalite_db'] = 0
-    # res['picalite_time'] = 0
-    # res['fastica_db'] = 0
-    # res['fastica_time'] = 0
+    for node in np.arange(0, len(node_num), 1):
+        Eval_dB = 0
+        node_id = node_num[node]
+        for i in range(test_num):
+            print('*** N_test:', i+1, ' with ', node_id, ' nodes.')
+            S, A, X = ss[dataset_id].copy(), aa[dataset_id].copy(
+            ), xx[dataset_id].copy().astype(np.float32)
 
-    Eval_dB = 0
-    for i in range(test_num):
-        print('*** N_test:', i+1)
-        pybss_tb.timer_start()
-        i = dataset_id
-        S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy().astype(np.float32)
-        hat_S = picalite.pica(X, init_ext_interval=125, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W)
-        # hat_S = picalite.pica(X, init_ext_interval=4000, dynamic_adj_coef=2, tol=0.0001, grad_var_tol=0.90, fun='logcosh', max_iter=200)
-        pybss_tb.timer_suspend()
-        Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
-        pybss_tb.timer_resume()
-        time = pybss_tb.timer_value()
-        measure_write('pICA_'+str(2), ['separation_accuracy', Eval_dB, 'separation_time', time])
-        print('pICA *** separation accuracy (dB): '+ str(Eval_dB) + ', separation time (ms): ' + str(time))
+            # pybss_tb.timer_start()
+            # hat_S = picalite.pica(X, init_ext_interval=125, dynamic_adj_coef=2, tol=0.0001,
+            #                       grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W, node_num=extraction_num[node])
+            # pybss_tb.timer_suspend()
+            # Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
+            # pybss_tb.timer_resume()
+            # time = pybss_tb.timer_value()
+            # measure_write('pICA_'+str(node_num[node])+'_2', [
+            #               'vnf', node_num[node], 'separation_accuracy', Eval_dB, 'separation_time', time])
+            # print('pICA    *** separation accuracy (dB): ' +
+            #       str(Eval_dB) + ', separation time (ms): ' + str(time))
 
+            pybss_tb.timer_start()
+            hat_S = picalite.pica(X, init_ext_interval=125, dynamic_adj_coef=2, tol=0.0001,
+                                  grad_var_tol=0.90, fun='logcosh', max_iter=200, w_init=W, node_num=node_num[node])
+            pybss_tb.timer_suspend()
+            Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
+            pybss_tb.timer_resume()
+            time = pybss_tb.timer_value()
+            measure_write('pICA_'+str(node_num[node]), [
+                          'vnf', node_num[node], 'separation_accuracy', Eval_dB, 'separation_time', time])
+            print('pICA    *** separation accuracy (dB): ' +
+                  str(Eval_dB) + ', separation time (ms): ' + str(time))
 
-    for i in range(test_num):
-        print('*** N_test:', i+1)
-        pybss_tb.timer_start()
-        i = dataset_id
-        S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
-        hat_S = picalite.fastica(X, tol=0.0001, fun='logcosh', max_iter=200, w_init=W)
-        pybss_tb.timer_suspend()
-        Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
-        pybss_tb.timer_resume()
-        time = pybss_tb.timer_value()
-        measure_write('Picalite_FastICA_'+str(2), ['separation_accuracy', Eval_dB, 'separation_time', time])
-        print('Picalite FastICA *** separation accuracy (dB): '+ str(Eval_dB) + ', separation time (ms): ' + str(time))
-
-
-    # transformer = FastICA(w_init=W)
-    # # transformer = FastICA()
-    # for i in range(test_num):
-    #     print('*** N_test:', i+1)
-    #     i = dataset_id
-    #     S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
-    #     X = X.T
-    #     pybss_tb.timer_start()
-    #     hat_S = transformer.fit_transform(X)
-    #     pybss_tb.timer_suspend()
-    #     hat_S = hat_S.T
-    #     Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
-    #     pybss_tb.timer_resume()
-    #     time = pybss_tb.timer_value()
-    #     measure_write('Sklearn_FastICA_'+str(2), ['separation_accuracy', Eval_dB, 'separation_time', time])
-    #     print('Sklearn FastICA *** separation accuracy (dB): '+ str(Eval_dB) + ', separation time (ms): ' + str(time))
+            # pybss_tb.timer_start()
+            # hat_S = picalite.fastica(
+            #     X, tol=0.0001, fun='logcosh', max_iter=200, w_init=W)
+            # pybss_tb.timer_suspend()
+            # Eval_dB = pybss_tb.bss_evaluation(S, hat_S, eval_type)
+            # pybss_tb.timer_resume()
+            # time = pybss_tb.timer_value()
+            # measure_write('FastICA_'+str(node_num[node]), [
+            #               'vnf', node_num[node], 'separation_accuracy', Eval_dB, 'separation_time', time])
+            # print('FastICA *** separation accuracy (dB): ' +
+            #       str(Eval_dB) + ', separation time (ms): ' + str(time))
