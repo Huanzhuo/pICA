@@ -223,7 +223,7 @@ class ProgressiveICALite(REC):
         while(True):
             if node_num is not None:
                 node_num -=1
-                if node_num <= 0:
+                if node_num < 0:
                     ext_interval = 1
             #++
             self.node_num = node_num
