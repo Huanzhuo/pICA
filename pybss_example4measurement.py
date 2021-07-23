@@ -467,7 +467,7 @@ picalite = ProgressiveICALite()
 
 if __name__ == '__main__': 
     ext = ''
-    nodes_num = 10
+    nodes_num = 6
     dataset_id = 0
 
     fr = open('dataset/saxsNew.pkl','rb')
@@ -504,13 +504,13 @@ if __name__ == '__main__':
 
     #AEICA
 
-    S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
-    picalite.init(nodes_num,S,X)
-    hat_S = picalite.aeica(X, ext_adapt_ica=u_0, tol=0.0001, fun='logcosh', max_iter=200, w_init=w_init, node_num=nodes_num)
+    # S,A,X = ss[dataset_id].copy(),aa[dataset_id].copy(),xx[dataset_id].copy()
+    # picalite.init(nodes_num,S,X)
+    # hat_S = picalite.aeica(X, ext_adapt_ica=u_0, tol=0.0001, fun='logcosh', max_iter=200, w_init=w_init, node_num=nodes_num)
 
 
-    measure_write('AeICA_'+str(nodes_num)+'details', picalite.xlens)
-    measure_write('AeICA_'+str(nodes_num)+'details', picalite.ts)
-    measure_write('AeICA_'+str(nodes_num)+'details', picalite.sdrs)
+    # measure_write('AeICA_'+str(nodes_num)+'details', picalite.xlens)
+    # measure_write('AeICA_'+str(nodes_num)+'details', picalite.ts)
+    # measure_write('AeICA_'+str(nodes_num)+'details', picalite.sdrs)
 
-    np.loadtxt('measurement/AeICA_'+str(nodes_num)+'details.csv', delimiter=',', usecols=[0])
+    # np.loadtxt('measurement/AeICA_'+str(nodes_num)+'details.csv', delimiter=',', usecols=[0])
