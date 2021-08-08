@@ -1,6 +1,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Test passing](https://img.shields.io/badge/Tests-passing-brightgreen.svg)
 
 # Progressive ICA (pICA)
+![](logo.png)
 
 ## Table of Contents
 - [Progressive ICA (pICA)](#progressive-ica-pica)
