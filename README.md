@@ -2,7 +2,7 @@
 ![Test passing](https://img.shields.io/badge/Tests-passing-brightgreen.svg)
 
 # Progressive ICA (pICA)
-![](logo.png)
+![](image/logo.png)
 
 ## Table of Contents
 - [Progressive ICA (pICA)](#progressive-ica-pica)
