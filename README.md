@@ -13,7 +13,6 @@
   - [Citation](#citation)
   - [About Us](#about-us)
   - [License](#license)
-  - [Todo](#todo)
 
 
 ## Description
@@ -38,16 +37,19 @@ Please click and download the [***saxs.pkl***](https://drive.google.com/drive/fo
 
 ## Citation
 
-```
-@INPROCEEDINGS{Wu2112:Network,
-  AUTHOR="Huanzhuo Wu and Yunbin Shen and Xun Xiao and Artur Hecker and Frank H.P. Fitzek",
-  TITLE="{In-Network} Processing Acoustic Data for Anomaly Detection in Smart Factory",
-  BOOKTITLE="2021 IEEE Global Communications Conference: IoT and Sensor Networks (Globecom2021 IoTSN)",
-  ADDRESS="Madrid, Spain",
-  MONTH=dec,
-  YEAR=2021
-}
-```
+If you like our repository, please cite our papers.
+
+    ``` 
+    @INPROCEEDINGS{Wu2112:Network,
+    AUTHOR="Huanzhuo Wu and Yunbin Shen and Xun Xiao and Artur Hecker and Frank H.P. Fitzek",
+    TITLE="{In-Network} Processing Acoustic Data for Anomaly Detection in Smart Factory",
+    BOOKTITLE="2021 IEEE Global Communications Conference: IoT and Sensor Networks (Globecom2021 IoTSN)",
+    ADDRESS="Madrid, Spain",
+    DAYS=6,
+    MONTH=dec,
+    YEAR=2021
+    }
+    ```
 
 ## About Us
 
@@ -59,7 +61,3 @@ We are researchers at the Deutsche Telekom Chair of Communication Networks (ComN
 ## License
 
 This project is licensed under the [MIT license](./LICENSE).
-
-## Todo
-1. Add test data set.
-2. Merge version 1.0 with interval extration to the branch pICA-v1.0
