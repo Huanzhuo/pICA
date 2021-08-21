@@ -1,0 +1,15 @@
+# YAML 1.2
+---
+authors: 
+  -
+    family-names: Wu
+    given-names: Huanzhuo
+  -
+    family-names: Shen
+    given-names: Yunbin
+cff-version: "1.2.0"
+date-released: 2021-08
+message: "If you like our repository, please cite our paper."
+repository-code: "https://github.com/Huanzhuo/pICA"
+title: "progressive Independent Component Analysis (pICA)"
+...

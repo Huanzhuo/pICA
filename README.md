@@ -37,7 +37,7 @@ Please click and download the [***saxs.pkl***](https://drive.google.com/drive/fo
 
 ## Citation
 
-If you like our repository, please cite our papers.
+If you like our repository, please cite our paper.
 
     ``` 
     @INPROCEEDINGS{Wu2112:Network,
