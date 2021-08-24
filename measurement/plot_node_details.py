@@ -12,7 +12,7 @@ matplotlib.use('TkAgg')
 print(matplotlib.get_configdir())
 
 if __name__ == '__main__':
-    nodes = 6
+    nodes = 7
     number_test = 0
 
     # fr = open('./emulator/MIMII/saxsNew.pkl', 'rb')
@@ -66,6 +66,6 @@ if __name__ == '__main__':
         # ax.set_ylim([0, 201])
         ax.legend([bar1, bar2, bar3], [
             'Subset data size', 'Processing time', 'Processing precision'], loc='upper left', ncol=1)
-        plt.xticks(x_index, ['Node 1', 'Node 2', 'Node 3', 'Node 4', 'Node 5', 'Node 6', 'Remote \n Agent'], rotation=30)
+        plt.xticks(x_index, ['Node 1', 'Node 2', 'Node 3', 'Node 4', 'Node 5', 'Node 6', 'Node 7', 'Remote \n Agent'], rotation=30)
         plt.savefig('./measurement/nodes_performance_simu.pdf',
                     dpi=600, bbox_inches='tight')
