@@ -13,6 +13,10 @@ def measure_write(filename,contents):
         f.write(data)
     f.close()
 
+def measure_write_table(filename,contents_list):
+    for contents in contents_list:
+        measure_write(filename,contents)
+
 def measure_arr_to_jsonstr(numpy_arr):
     if numpy_arr is not None:
         return json.dumps([[y for y in x] for x in numpy_arr], separators=('|', ':'))
